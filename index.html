@@ -84,9 +84,25 @@
 
   <div class="preset">
     <button data-p="vhs">VHS</button>
+    <button data-p="svhs">S-VHS</button>
+    <button data-p="betamax">Betamax</button>
+    <button data-p="u_matic">U-matic</button>
+    <button data-p="hi8">Hi8</button>
+    <button data-p="camcorder">Camcorder</button>
     <button data-p="broadcast">Broadcast</button>
     <button data-p="cable">Cable</button>
+    <button data-p="uhf">UHF snow</button>
+    <button data-p="deadchannel">Dead channel</button>
+    <button data-p="laserdisc">Laserdisc</button>
+    <button data-p="gamerf">Game RF</button>
+    <button data-p="nes">NES RGB</button>
+    <button data-p="arcade">Arcade CRT</button>
+    <button data-p="trinitron">Trinitron</button>
+    <button data-p="pvm">PVM monitor</button>
+    <button data-p="surveillance">Surveillance</button>
+    <button data-p="portapak">B&W Portapak</button>
     <button data-p="dirty">Dirty tape</button>
+    <button data-p="secamish">SECAM-ish</button>
     <button data-p="clean">Clean NTSC</button>
     <button data-p="off">Bypass</button>
   </div>
@@ -861,6 +877,134 @@ const PRESETS = {
     mode: 'rgb', decoder: 1, colorunder: 0, interlace: 0,
     sat: 1.0, lum: 1.0,
     scan: 0, mask: 0, masktype: 0, pitch: 3, bloom: 0, glow: 0, vig: 0, barrel: 0,
+  },
+  // S-VHS: higher Y bandwidth than VHS, still color-under. Y/C kept separate internally.
+  svhs: {
+    noise: 0.025, ring: 0.25, jit: 0.0018, dp: 4, dg: 0.07, hue: 2, skew: 0.003, hsw: 10, drop: 0.001, gen: 1,
+    ybw: 5.0, ibw: 1.2, qbw: 0.4, qual: 2.2,
+    mode: 'svideo', decoder: 1, colorunder: 1, interlace: 0,
+    sat: 1.05, lum: 1.0,
+    scan: 0.22, mask: 0.14, masktype: 1, pitch: 3, bloom: 0.4, glow: 0.18, vig: 0.28, barrel: 0.05,
+  },
+  // Betamax: slightly cleaner than VHS, better Y bandwidth, same color-under.
+  betamax: {
+    noise: 0.035, ring: 0.32, jit: 0.0025, dp: 6, dg: 0.1, hue: 3, skew: 0.005, hsw: 16, drop: 0.002, gen: 2,
+    ybw: 3.5, ibw: 1.1, qbw: 0.38, qual: 2.0,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 0,
+    sat: 1.08, lum: 1.0,
+    scan: 0.26, mask: 0.16, masktype: 1, pitch: 3, bloom: 0.5, glow: 0.22, vig: 0.32, barrel: 0.06,
+  },
+  // U-matic: 3/4" pro cart, heavier tape texture than Beta, broadcast acquisition '70s–'80s.
+  u_matic: {
+    noise: 0.06, ring: 0.4, jit: 0.004, dp: 9, dg: 0.14, hue: 5, skew: 0.009, hsw: 26, drop: 0.005, gen: 2,
+    ybw: 3.2, ibw: 1.2, qbw: 0.4, qual: 2.0,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 1,
+    sat: 1.05, lum: 0.98,
+    scan: 0.3, mask: 0.2, masktype: 2, pitch: 3, bloom: 0.55, glow: 0.28, vig: 0.38, barrel: 0.07,
+  },
+  // Hi8: 8mm consumer camcorder, FM luma, no color-under (AM chroma), better Y than VHS.
+  hi8: {
+    noise: 0.04, ring: 0.28, jit: 0.0022, dp: 5, dg: 0.08, hue: 2.5, skew: 0.004, hsw: 12, drop: 0.0015, gen: 1,
+    ybw: 4.6, ibw: 1.2, qbw: 0.38, qual: 2.1,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.1, lum: 1.02,
+    scan: 0.2, mask: 0.12, masktype: 1, pitch: 3, bloom: 0.38, glow: 0.18, vig: 0.26, barrel: 0.05,
+  },
+  // Camcorder: handheld '90s home video, CCD artifacts, moderate noise.
+  camcorder: {
+    noise: 0.055, ring: 0.22, jit: 0.0028, dp: 4, dg: 0.09, hue: 3, skew: 0.006, hsw: 14, drop: 0.002, gen: 1,
+    ybw: 3.8, ibw: 1.1, qbw: 0.35, qual: 2.0,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 0,
+    sat: 1.15, lum: 1.05,
+    scan: 0.25, mask: 0.15, masktype: 1, pitch: 3, bloom: 0.45, glow: 0.2, vig: 0.3, barrel: 0.06,
+  },
+  // UHF snow: weak off-air reception, heavy gaussian snow on composite.
+  uhf: {
+    noise: 0.22, ring: 0.5, jit: 0.007, dp: 10, dg: 0.15, hue: 6, skew: 0.006, hsw: 8, drop: 0.008, gen: 1,
+    ybw: 3.6, ibw: 1.0, qbw: 0.35, qual: 1.8,
+    mode: 'composite', decoder: 0, colorunder: 0, interlace: 0,
+    sat: 0.85, lum: 0.95,
+    scan: 0.28, mask: 0.18, masktype: 2, pitch: 3, bloom: 0.5, glow: 0.25, vig: 0.4, barrel: 0.06,
+  },
+  // Dead channel: mostly snow, very low signal strength, desaturated.
+  deadchannel: {
+    noise: 0.55, ring: 0.25, jit: 0.02, dp: 4, dg: 0.08, hue: 15, skew: 0.004, hsw: 4, drop: 0.02, gen: 1,
+    ybw: 2.8, ibw: 0.6, qbw: 0.25, qual: 1.5,
+    mode: 'composite', decoder: 0, colorunder: 0, interlace: 0,
+    sat: 0.3, lum: 0.85,
+    scan: 0.35, mask: 0.22, masktype: 2, pitch: 3, bloom: 0.55, glow: 0.3, vig: 0.5, barrel: 0.07,
+  },
+  // Laserdisc: clean composite, low noise, mild CRT (premium consumer format).
+  laserdisc: {
+    noise: 0.012, ring: 0.18, jit: 0.0008, dp: 2, dg: 0.03, hue: 1, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 4.5, ibw: 1.3, qbw: 0.4, qual: 2.4,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.05, lum: 1.0,
+    scan: 0.2, mask: 0.12, masktype: 1, pitch: 3, bloom: 0.32, glow: 0.16, vig: 0.22, barrel: 0.04,
+  },
+  // Game RF: NES/SNES via RF modulator, extreme cross-color, notch decoder, dot crawl.
+  gamerf: {
+    noise: 0.06, ring: 0.42, jit: 0.002, dp: 7, dg: 0.12, hue: 3, skew: 0.002, hsw: 0, drop: 0.001, gen: 1,
+    ybw: 2.8, ibw: 0.9, qbw: 0.3, qual: 1.8,
+    mode: 'composite', decoder: 0, colorunder: 0, interlace: 0,
+    sat: 1.25, lum: 1.05,
+    scan: 0.3, mask: 0.2, masktype: 1, pitch: 3, bloom: 0.5, glow: 0.25, vig: 0.3, barrel: 0.07,
+  },
+  // NES RGB: hypothetical pure-RGB hookup of retro console, heavy scanlines, vivid.
+  nes: {
+    noise: 0.005, ring: 0.1, jit: 0, dp: 0, dg: 0, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 6.0, ibw: 3.0, qbw: 2.0, qual: 2.0,
+    mode: 'rgb', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.2, lum: 1.05,
+    scan: 0.45, mask: 0.28, masktype: 1, pitch: 2, bloom: 0.4, glow: 0.2, vig: 0.28, barrel: 0.05,
+  },
+  // Arcade CRT: heavy aperture grille, punchy bloom, big curve.
+  arcade: {
+    noise: 0.01, ring: 0.15, jit: 0.0005, dp: 1, dg: 0.02, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 5.0, ibw: 1.8, qbw: 0.8, qual: 2.2,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.3, lum: 1.1,
+    scan: 0.5, mask: 0.35, masktype: 1, pitch: 2, bloom: 0.75, glow: 0.4, vig: 0.35, barrel: 0.12,
+  },
+  // Trinitron: aperture grille, sharp phosphors, minimal CRT distortion.
+  trinitron: {
+    noise: 0.008, ring: 0.12, jit: 0.0003, dp: 1, dg: 0.02, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 4.5, ibw: 1.4, qbw: 0.5, qual: 2.5,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.1, lum: 1.0,
+    scan: 0.28, mask: 0.22, masktype: 1, pitch: 2, bloom: 0.35, glow: 0.18, vig: 0.2, barrel: 0.025,
+  },
+  // PVM broadcast monitor: crisp, minimal bloom, shadow mask.
+  pvm: {
+    noise: 0.006, ring: 0.1, jit: 0, dp: 0, dg: 0.01, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 5.5, ibw: 1.3, qbw: 0.4, qual: 2.8,
+    mode: 'svideo', decoder: 2, colorunder: 0, interlace: 0,
+    sat: 1.0, lum: 1.0,
+    scan: 0.18, mask: 0.2, masktype: 2, pitch: 3, bloom: 0.2, glow: 0.1, vig: 0.15, barrel: 0.02,
+  },
+  // Surveillance: degraded low-res tape loop, low saturation, heavy noise.
+  surveillance: {
+    noise: 0.12, ring: 0.45, jit: 0.006, dp: 12, dg: 0.2, hue: 8, skew: 0.01, hsw: 18, drop: 0.012, gen: 3,
+    ybw: 2.5, ibw: 0.7, qbw: 0.25, qual: 1.6,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 1,
+    sat: 0.55, lum: 0.92,
+    scan: 0.35, mask: 0.22, masktype: 2, pitch: 3, bloom: 0.6, glow: 0.3, vig: 0.45, barrel: 0.08,
+  },
+  // B&W Portapak: monochrome, heavy scanlines, narrow chroma so color is crushed.
+  portapak: {
+    noise: 0.08, ring: 0.35, jit: 0.005, dp: 0, dg: 0, hue: 0, skew: 0.006, hsw: 12, drop: 0.004, gen: 2,
+    ybw: 3.0, ibw: 0.3, qbw: 0.1, qual: 1.8,
+    mode: 'composite', decoder: 0, colorunder: 0, interlace: 1,
+    sat: 0.0, lum: 1.05,
+    scan: 0.4, mask: 0.25, masktype: 2, pitch: 3, bloom: 0.6, glow: 0.3, vig: 0.5, barrel: 0.08,
+  },
+  // SECAM-ish: warmer, hotter saturation, hue drift (not true SECAM demod, but evokes).
+  secamish: {
+    noise: 0.03, ring: 0.28, jit: 0.002, dp: 6, dg: 0.12, hue: 10, skew: 0.003, hsw: 4, drop: 0.001, gen: 1,
+    ybw: 4.0, ibw: 1.0, qbw: 0.35, qual: 2.0,
+    mode: 'composite', decoder: 0, colorunder: 0, interlace: 0,
+    sat: 1.35, lum: 1.03,
+    scan: 0.25, mask: 0.16, masktype: 2, pitch: 3, bloom: 0.45, glow: 0.22, vig: 0.3, barrel: 0.05,
   },
 };
 

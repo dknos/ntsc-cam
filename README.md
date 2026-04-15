@@ -99,10 +99,33 @@ Derived parameters: horizontal sample rate `f_s = canvasW / 52.656 µs`, subcarr
 
 ## Presets
 
+Tape / recording formats:
 - **VHS** — heavy color-under, narrow Q, severe noise, head switch, gen=2, heavy CRT.
+- **S-VHS** — wider Y bandwidth, color-under retained, S-Video path.
+- **Betamax** — slightly cleaner than VHS, better Y, same color-under family.
+- **U-matic** — 3/4" pro cart, broadcast acquisition ('70s–'80s), heavier tape texture.
+- **Hi8** — 8mm AM chroma (no color-under), better Y than VHS.
+- **Camcorder** — '90s handheld home video, CCD noise, moderate color-under.
+- **Dirty tape** — nth-generation dub, heavy noise/jitter/dropouts, gen=3.
+- **Surveillance** — degraded low-res tape loop, desaturated, heavy dropouts.
+- **B&W Portapak** — monochrome, heavy scanlines, crushed chroma.
+
+Broadcast / reception:
 - **Broadcast** — 4.2/1.3/0.4 MHz, minimal impairment, 2-line comb, subtle CRT.
 - **Cable** — clean, flat, modern mask, 2-line comb.
-- **Dirty tape** — nth-generation dub, heavy noise/jitter/dropouts, gen=3.
+- **UHF snow** — weak off-air, heavy gaussian snow.
+- **Dead channel** — mostly snow, no chroma lock.
+- **Laserdisc** — premium consumer composite, low noise, mild CRT.
+- **SECAM-ish** — hotter saturation, hue drift (evokes SECAM, not a real SECAM demod).
+
+Games / consoles / monitors:
+- **Game RF** — NES/SNES via RF modulator, extreme cross-color, notch decoder.
+- **NES RGB** — hypothetical RGB hookup of a retro console, vivid, heavy scanlines.
+- **Arcade CRT** — punchy colors, heavy aperture grille, big curve.
+- **Trinitron** — aperture grille, sharp phosphors, minimal distortion.
+- **PVM monitor** — broadcast reference, crisp, S-Video path, 3-line comb.
+
+Clean / off:
 - **Clean NTSC** — S-Video direct feed to a studio monitor, minimal CRT.
 - **Bypass** — RGB mode, CRT off.
 
