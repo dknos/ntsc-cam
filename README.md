@@ -4,6 +4,8 @@
 
 ![ntsc-cam VHS preset on a CarShield broadcast feed](screenshot.png)
 
+![ntsc-cam arcade CRT on vintage map display](crt-map-demo.png)
+
 A signal-accurate NTSC encode→decode pipeline in a single HTML page. Not a filter stack — it generates an honest composite signal from your video source using real NTSC-M timing (f_sc = 315/88 MHz = 3.579545 MHz, 227.5 cycles/line, 52.656 µs active, 4-field cycle, 33° I-axis rotation) and demodulates it back to RGB, so dot crawl, chroma bleed, ringing, hue drift, differential phase/gain, cross-color and head-switching emerge from the physics rather than luma-curve hacks.
 
 Point it at your webcam, phone camera (via Phone Link / DroidCam / Camo), a display capture, a file, or a URL. Use it as an **OBS Browser Source** for vertical 1080×1920 shorts, or run it fullscreen.
