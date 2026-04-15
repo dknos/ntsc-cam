@@ -1836,12 +1836,15 @@ bindRange('glow', 'glow', parseFloat, 2);
 bindRange('vig', 'vig', parseFloat, 2);
 bindRange('barrel', 'barrel', parseFloat, 3);
 function updateModeDisables() {
-  const isRGB = state.mode === 'rgb';
-  ['ring', 'dp', 'dg', 'drop'].forEach(id => {
+  const isComposite = state.mode === 'composite';
+  // Composite-only artifacts: noise, ringing, diff phase/gain, dropout
+  ['noise', 'ring', 'dp', 'dg', 'drop'].forEach(id => {
     const el = $(id);
     if (el) {
-      el.disabled = isRGB;
-      el.parentElement.style.opacity = isRGB ? '0.4' : '1';
+      el.disabled = !isComposite;
+      const row = el.closest('.row') || el.parentElement;
+      if (row) row.style.opacity = isComposite ? '1' : '0.35';
+      if (row) row.style.pointerEvents = isComposite ? 'auto' : 'none';
     }
   });
 }
