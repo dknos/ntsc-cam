@@ -1,5 +1,7 @@
 # ntsc-cam
 
+**Live: https://dknos.github.io/ntsc-cam/**
+
 A real NTSC encode→decode pipeline in a single HTML page. Not a filter stack — it generates a composite signal from your video source and demodulates it back to RGB, so the artifacts (dot crawl, chroma bleed, ringing, hue drift, head-switching) come from the physics, not from luma-curve hacks.
 
 Point it at your webcam, phone camera (via Phone Link / DroidCam / Camo), a display capture, a file, or a URL. Use it as an **OBS Browser Source** for vertical 1080×1920 shorts, or run it fullscreen.
