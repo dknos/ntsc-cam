@@ -10,11 +10,12 @@
   #cv { background:#000; max-width:100%; max-height:100%; image-rendering:pixelated; }
   #panel {
     position:fixed; top:8px; left:8px; padding:10px 12px; border-radius:8px;
-    background:rgba(15,15,18,0.78); border:1px solid #333; backdrop-filter:blur(6px);
+    background:rgba(15,15,18,0.82); border:1px solid #333; backdrop-filter:blur(6px);
     max-width:320px; max-height:96vh; overflow:auto; z-index:10;
   }
   #panel.hide { transform:translateX(-110%); transition:transform .25s; }
   #panel h1 { font-size:12px; margin:0 0 6px; letter-spacing:.05em; color:#7ee787; text-transform:uppercase;}
+  #panel h2 { font-size:11px; margin:10px 0 2px; letter-spacing:.04em; color:#79c0ff; text-transform:uppercase; border-top:1px solid #222; padding-top:8px;}
   #panel label { display:block; margin:6px 0 2px; color:#aaa; font-size:11px; }
   #panel input[type=range] { width:100%; }
   #panel select, #panel button, #panel input[type=text] {
@@ -32,9 +33,11 @@
     border-radius:50%; width:28px; height:28px; cursor:pointer; font-family:inherit;
   }
   .row { display:grid; grid-template-columns:1fr auto; gap:6px; align-items:center; }
-  .row span { font-variant-numeric:tabular-nums; color:#7ee787; font-size:11px; min-width:38px; text-align:right; }
+  .row span { font-variant-numeric:tabular-nums; color:#7ee787; font-size:11px; min-width:44px; text-align:right; }
   .preset { display:flex; gap:4px; flex-wrap:wrap; margin:6px 0;}
   .preset button { width:auto; flex:1 1 auto; font-size:11px; padding:3px 6px;}
+  .cb { display:flex; align-items:center; gap:6px; margin:4px 0; font-size:11px; color:#aaa; }
+  .cb input { width:auto; margin:0; }
 </style>
 </head>
 <body>
@@ -81,27 +84,50 @@
 
   <div class="preset">
     <button data-p="vhs">VHS</button>
-    <button data-p="cable">Cable TV</button>
+    <button data-p="broadcast">Broadcast</button>
+    <button data-p="cable">Cable</button>
     <button data-p="dirty">Dirty tape</button>
     <button data-p="clean">Clean NTSC</button>
     <button data-p="off">Bypass</button>
   </div>
 
+  <h2>Signal path</h2>
+
   <label>Signal mode</label>
   <select id="mode">
     <option value="composite" selected>Composite (full artifacts)</option>
     <option value="svideo">S-Video (no dot crawl)</option>
-    <option value="rgb">RGB (encode only, no decode)</option>
+    <option value="rgb">RGB (no analog)</option>
   </select>
 
-  <label class="row">Noise <span id="v_noise">0.04</span></label>
+  <label>Decoder</label>
+  <select id="decoder">
+    <option value="0">Notch filter (cheap, dot crawl)</option>
+    <option value="1" selected>2-line comb (clean luma)</option>
+    <option value="2">3-line comb (best, softer)</option>
+  </select>
+
+  <label class="cb"><input type="checkbox" id="colorunder"> Color-under (VHS chroma @ 629 kHz)</label>
+  <label class="cb"><input type="checkbox" id="interlace"> Interlace field alternation</label>
+
+  <h2>Encoder bandwidth</h2>
+
+  <label class="row">Y bandwidth (MHz) <span id="v_ybw">4.20</span></label>
+  <input type="range" id="ybw" min="1.5" max="6.0" step="0.05" value="4.2">
+
+  <label class="row">I bandwidth (MHz) <span id="v_ibw">1.30</span></label>
+  <input type="range" id="ibw" min="0.3" max="3.0" step="0.05" value="1.3">
+
+  <label class="row">Q bandwidth (MHz) <span id="v_qbw">0.40</span></label>
+  <input type="range" id="qbw" min="0.1" max="2.0" step="0.05" value="0.4">
+
+  <label class="row">Filter quality <span id="v_qual">2.00</span></label>
+  <input type="range" id="qual" min="1.0" max="3.0" step="0.1" value="2.0">
+
+  <h2>Channel impairments</h2>
+
+  <label class="row">Noise (IRE) <span id="v_noise">0.04</span></label>
   <input type="range" id="noise" min="0" max="0.4" step="0.005" value="0.04">
-
-  <label class="row">Chroma bleed <span id="v_chroma">0.55</span></label>
-  <input type="range" id="chroma" min="0" max="1" step="0.01" value="0.55">
-
-  <label class="row">Dot crawl <span id="v_dot">0.6</span></label>
-  <input type="range" id="dot" min="0" max="1.5" step="0.01" value="0.6">
 
   <label class="row">Ringing <span id="v_ring">0.35</span></label>
   <input type="range" id="ring" min="0" max="1" step="0.01" value="0.35">
@@ -109,11 +135,28 @@
   <label class="row">Scan jitter <span id="v_jit">0.0015</span></label>
   <input type="range" id="jit" min="0" max="0.02" step="0.0005" value="0.0015">
 
-  <label class="row">VHS hue drift <span id="v_hue">0.04</span></label>
-  <input type="range" id="hue" min="-0.5" max="0.5" step="0.005" value="0.04">
+  <label class="row">Diff phase (°) <span id="v_dp">0</span></label>
+  <input type="range" id="dp" min="0" max="25" step="0.5" value="0">
 
-  <label class="row">Head switch (px from bottom) <span id="v_hsw">14</span></label>
+  <label class="row">Diff gain <span id="v_dg">0</span></label>
+  <input type="range" id="dg" min="0" max="0.8" step="0.01" value="0">
+
+  <label class="row">Hue drift (°) <span id="v_hue">2.3</span></label>
+  <input type="range" id="hue" min="-30" max="30" step="0.5" value="2.3">
+
+  <label class="row">Tape skew <span id="v_skew">0</span></label>
+  <input type="range" id="skew" min="0" max="0.05" step="0.001" value="0">
+
+  <label class="row">Head switch (px) <span id="v_hsw">14</span></label>
   <input type="range" id="hsw" min="0" max="120" step="1" value="14">
+
+  <label class="row">Dropout rate <span id="v_drop">0</span></label>
+  <input type="range" id="drop" min="0" max="0.15" step="0.002" value="0">
+
+  <label class="row">Generation <span id="v_gen">1</span></label>
+  <input type="range" id="gen" min="1" max="4" step="1" value="1">
+
+  <h2>Color / brightness</h2>
 
   <label class="row">Saturation <span id="v_sat">1.05</span></label>
   <input type="range" id="sat" min="0" max="2" step="0.01" value="1.05">
@@ -121,11 +164,36 @@
   <label class="row">Brightness <span id="v_lum">1.0</span></label>
   <input type="range" id="lum" min="0.3" max="1.7" step="0.01" value="1.0">
 
-  <label class="row">Bleed length (taps) <span id="v_taps">9</span></label>
-  <input type="range" id="taps" min="3" max="21" step="2" value="9">
+  <h2>CRT post</h2>
 
-  <label class="row">Generation (re-record passes) <span id="v_gen">1</span></label>
-  <input type="range" id="gen" min="1" max="4" step="1" value="1">
+  <label>Mask type</label>
+  <select id="masktype">
+    <option value="0" selected>None</option>
+    <option value="1">Aperture grille</option>
+    <option value="2">Shadow mask</option>
+    <option value="3">Slot mask</option>
+  </select>
+
+  <label class="row">Scanline <span id="v_scan">0.20</span></label>
+  <input type="range" id="scan" min="0" max="1" step="0.01" value="0.2">
+
+  <label class="row">Mask strength <span id="v_mask">0.15</span></label>
+  <input type="range" id="mask" min="0" max="1" step="0.01" value="0.15">
+
+  <label class="row">Mask pitch (px) <span id="v_pitch">3</span></label>
+  <input type="range" id="pitch" min="2" max="8" step="1" value="3">
+
+  <label class="row">Bloom <span id="v_bloom">0.40</span></label>
+  <input type="range" id="bloom" min="0" max="2" step="0.02" value="0.4">
+
+  <label class="row">Glow <span id="v_glow">0.20</span></label>
+  <input type="range" id="glow" min="0" max="1.5" step="0.02" value="0.2">
+
+  <label class="row">Vignette <span id="v_vig">0.25</span></label>
+  <input type="range" id="vig" min="0" max="1" step="0.01" value="0.25">
+
+  <label class="row">Barrel <span id="v_barrel">0.03</span></label>
+  <input type="range" id="barrel" min="0" max="0.3" step="0.005" value="0.03">
 
   <div id="status">init…</div>
 </div>
@@ -138,23 +206,49 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
 
-// ---- query string helpers --------------------------------------------------
+// ─── NTSC constants ────────────────────────────────────────────────────────────
+// Reference: FCC NTSC-M, SMPTE 170M.
+const NTSC = {
+  fsc_mhz: 3.579545454545,  // 315/88 MHz exactly
+  line_us: 63.555,          // 1/15734.264 s
+  active_us: 52.656,        // active video portion of each line
+  front_porch_us: 1.5,
+  sync_us: 4.7,
+  breezeway_us: 0.6,
+  burst_us: 2.5,            // 9 cycles of color burst
+  back_porch_us: 1.6,
+  cycles_per_line: 227.5,   // (f_sc / f_h) — half-integer drives line inversion
+  iaxis_deg: 33.0,          // NTSC I axis offset from B-Y
+  qaxis_deg: 123.0,         // Q axis
+  ire_sync: -40, ire_blank: 0, ire_black: 7.5, ire_white: 100,
+  color_under_mhz: 0.629,   // VHS heterodyned chroma carrier
+};
+
+// ─── query string helpers ──────────────────────────────────────────────────────
 const qs = new URLSearchParams(location.search);
 const pickCam = qs.get('cam');
-const pickSrc = qs.get('src');     // cam | display | file | url | none
-const pickSize = qs.get('size');   // e.g. 1080x1920
+const pickSrc = qs.get('src');
+const pickSize = qs.get('size');
 const pickPreset = qs.get('preset');
+const pickMode = qs.get('mode');
+const pickDecoder = qs.get('decoder');
 const startURL = qs.get('video');
 const hidePanel = qs.has('hud') && qs.get('hud') === 'off';
 
-// ---- WebGL2 context --------------------------------------------------------
+// ─── WebGL2 context ────────────────────────────────────────────────────────────
 const cv = $('cv');
 const gl = cv.getContext('webgl2', { alpha: false, antialias: false, premultipliedAlpha: false });
 if (!gl) {
   $('status').textContent = 'WebGL2 unavailable. Use Chrome/Edge/Firefox latest.';
   throw new Error('no webgl2');
 }
+const EXT_FLOAT = gl.getExtension('EXT_color_buffer_float');
+const EXT_HALF = gl.getExtension('EXT_color_buffer_half_float');
+const EXT_FLOAT_LINEAR = gl.getExtension('OES_texture_float_linear');
+const EXT_HALF_LINEAR = gl.getExtension('OES_texture_half_float_linear');
+const USE_F16 = !!EXT_HALF;   // prefer half-float for composite buffer
 
+// ─── shaders ───────────────────────────────────────────────────────────────────
 const VS = `#version 300 es
 in vec2 a_pos;
 out vec2 v_uv;
@@ -163,31 +257,48 @@ void main() {
   gl_Position = vec4(a_pos, 0.0, 1.0);
 }`;
 
-// Fragment 1: encode RGB → composite-ish signal.
-// We compute YIQ, low-pass chroma horizontally (chroma bandwidth limit),
-// then modulate I,Q onto the NTSC subcarrier proxy. The "subcarrier" here is
-// a per-pixel 4-cycle phase that produces dot-crawl when the decoder pulls it
-// back out via subtraction. Output: encoded composite signal in R, raw Y in G,
-// raw I in B, raw Q in A so we can bypass cleanly downstream.
+// ─── FS_ENCODE ────────────────────────────────────────────────────────────────
+// Gamma-precorrected RGB → Y'IQ, independent I/Q Gaussian band-limiting (I wider
+// than Q per NTSC-M), then modulate subcarrier with true NTSC timing. Output
+// packs composite in R, reference Y'/I/Q in G/B/A so S-Video mode and comb
+// decoders can bypass demodulation cleanly.
 const FS_ENCODE = `#version 300 es
 precision highp float;
 in vec2 v_uv;
 out vec4 outC;
 
 uniform sampler2D u_tex;
-uniform vec2 u_res;        // canvas pixel size
-uniform vec2 u_srcRes;     // source video pixel size (informational)
-uniform float u_chromaBleed; // 0..1 strength of horizontal chroma blur
-uniform int   u_taps;        // chroma low-pass tap count (odd)
-uniform float u_subcarrier;  // dot crawl strength
-uniform float u_jitter;      // horizontal scanline jitter
+uniform vec2 u_res;
+uniform vec2 u_srcRes;
 uniform float u_time;
-uniform float u_brightness;
+uniform float u_fieldPhase;      // radians — 4-field cycle
+uniform float u_fsc_per_px;      // subcarrier cycles per output pixel
+uniform float u_cyc_per_line;    // subcarrier cycles per scanline (nominal 227.5)
+uniform int   u_iTaps;
+uniform int   u_qTaps;
+uniform float u_iSigma;
+uniform float u_qSigma;
+uniform float u_chromaGain;
+uniform float u_hueDrift;        // radians
+uniform float u_burstRot;        // radians — encoder burst phase offset
+uniform float u_diffPhase;       // radians per unit Y (luma→phase coupling)
+uniform float u_diffGain;        // Y coupling into chroma amplitude
 uniform float u_saturation;
-uniform float u_hueDrift;    // chroma phase drift (radians-ish)
-uniform int   u_modeRGB;     // 1 = bypass (return RGB)
+uniform float u_jitter;          // per-line horizontal offset amplitude
+uniform int   u_modeRGB;
+uniform int   u_modeColorUnder;
+uniform int   u_modeInterlace;
+uniform int   u_frameIdx;
+
+const float PI = 3.141592653589793;
+const float TWO_PI = 6.283185307179586;
+const float IAXIS_RAD = 0.5759586531581288;  // radians(33°)
+const float COLORUNDER_RATIO = 0.175720;      // 0.629 / 3.579545
 
 vec3 rgb2yiq(vec3 c) {
+  // Y = 0.299 R + 0.587 G + 0.114 B
+  // I = 0.596 R − 0.274 G − 0.322 B   (≈ cos(33°)·V − sin(33°)·U after mixing)
+  // Q = 0.211 R − 0.523 G + 0.312 B
   return mat3(
     0.299,  0.596,  0.211,
     0.587, -0.274, -0.523,
@@ -195,177 +306,396 @@ vec3 rgb2yiq(vec3 c) {
   ) * c;
 }
 
-vec2 jitterUV(vec2 uv) {
-  float row = floor(uv.y * u_res.y);
-  // small per-line horizontal wobble; deterministic per frame
-  float jit = (sin(row * 12.9898 + u_time * 2.0) + sin(row * 78.233 + u_time * 0.7)) * 0.5;
-  return vec2(uv.x + jit * u_jitter, uv.y);
+float hash21(vec2 p){ p = fract(p*vec2(443.897,441.423)); p += dot(p, p+19.19); return fract(p.x*p.y); }
+float hash1(float x){ return fract(sin(x*12.9898) * 43758.5453); }
+
+float gauss1(float x, float sigma) {
+  float a = x / max(sigma, 0.0001);
+  return exp(-0.5 * a * a);
 }
 
 void main() {
-  vec2 uv = jitterUV(v_uv);
-  vec3 base = texture(u_tex, uv).rgb;
-  if (u_modeRGB == 1) { outC = vec4(base * u_brightness, 1.0); return; }
+  float px = v_uv.x * u_res.x;
+  float py = v_uv.y * u_res.y;
+  float lineIdx = floor(py);
 
-  vec3 yiq = rgb2yiq(base);
-  yiq.gb *= u_saturation;
+  // Time base error — per-line horizontal jitter, deterministic per frame.
+  float jnoise = (hash1(lineIdx * 17.13 + u_time * 60.0) - 0.5);
+  float jitDx = jnoise * u_jitter;
+  vec2 uv = vec2(v_uv.x + jitDx, v_uv.y);
 
-  // Horizontal low-pass on chroma — accumulate weighted neighbors.
-  float pxStep = 1.0 / u_res.x;
-  int half_ = max(1, (u_taps - 1) / 2);
-  float wsum = 0.0;
-  vec2 chromaAcc = vec2(0.0);
-  for (int i = -10; i <= 10; ++i) {
-    if (i < -half_ || i > half_) continue;
-    float t = float(i) / float(half_);
-    float w = exp(-t * t * 2.5);
-    wsum += w;
-    vec3 nyiq = rgb2yiq(texture(u_tex, jitterUV(v_uv + vec2(float(i) * pxStep, 0.0))).rgb);
-    chromaAcc += w * nyiq.gb;
+  vec3 src = texture(u_tex, uv).rgb;
+  if (u_modeRGB == 1) {
+    // RGB bypass: pack raw RGB into G/B/A; decoder reads packed.gba directly.
+    outC = vec4(0.0, src.r, src.g, src.b);
+    return;
   }
-  vec2 chroma = mix(yiq.gb, chromaAcc / wsum, u_chromaBleed);
 
-  // Hue drift: rotate I,Q by u_hueDrift radians.
-  float c = cos(u_hueDrift), s = sin(u_hueDrift);
-  vec2 chromaR = vec2(chroma.x * c - chroma.y * s, chroma.x * s + chroma.y * c);
+  vec3 centerYIQ = rgb2yiq(src);
+  centerYIQ.gb *= u_saturation;
+  float Y = centerYIQ.x;
 
-  // Encode subcarrier — fake 4-cycle-per-pixel phase that the decoder cancels.
-  float px = uv.x * u_res.x;
-  float phase = px * 1.5707963; // pi/2 per pixel = 4 samples per cycle
-  float sc = (chromaR.x * sin(phase) + chromaR.y * cos(phase)) * u_subcarrier * 0.25;
-  float composite = yiq.r + sc;
+  // Gaussian LPF — one sampling loop, two accumulators for I and Q.
+  float pxStep = 1.0 / u_res.x;
+  float iAcc = 0.0, qAcc = 0.0, iW = 0.0, qW = 0.0;
+  int iHalf = max(0, (u_iTaps - 1) / 2);
+  int qHalf = max(0, (u_qTaps - 1) / 2);
+  int bigHalf = max(iHalf, qHalf);
+  for (int i = -31; i <= 31; ++i) {
+    if (i < -bigHalf || i > bigHalf) continue;
+    float fi = float(i);
+    vec3 ny = rgb2yiq(texture(u_tex, uv + vec2(fi * pxStep, 0.0)).rgb);
+    ny.gb *= u_saturation;
+    if (i >= -iHalf && i <= iHalf) { float w = gauss1(fi, u_iSigma); iAcc += w * ny.y; iW += w; }
+    if (i >= -qHalf && i <= qHalf) { float w = gauss1(fi, u_qSigma); qAcc += w * ny.z; qW += w; }
+  }
+  float I = iAcc / max(iW, 1e-6);
+  float Q = qAcc / max(qW, 1e-6);
 
-  outC = vec4(composite, yiq.r, chromaR.x, chromaR.y);
-  outC.a = 1.0;
-  // Pack I,Q into B,A so downstream can recover them in S-Video mode without
-  // re-doing the chroma low-pass.
-  outC.b = chromaR.x * 0.5 + 0.5;
-  // Channel A is alpha, blending might bite us; we'll use a separate FBO if
-  // needed but for our straight-through chain alpha=1 lets us pass Q via... we
-  // can't safely. We'll re-derive Q in the decoder by using sin(phase) on the
-  // composite. So drop the Q packing and let the decoder do it.
+  // Differential gain — chroma amplitude modulates with luma level.
+  float lumaDelta = (Y - 0.5) * 2.0;
+  float chromaScale = 1.0 + u_diffGain * lumaDelta;
+
+  // Differential phase — chroma axis rotates with luma level.
+  float ntscRot = IAXIS_RAD + u_hueDrift + u_diffPhase * lumaDelta;
+  float cr = cos(ntscRot), sr = sin(ntscRot);
+  float Ir = I * cr - Q * sr;
+  float Qr = I * sr + Q * cr;
+
+  // Interlace: odd fields add extra half-line phase offset.
+  float interlaceOffset = 0.0;
+  if (u_modeInterlace == 1) {
+    interlaceOffset = float((u_frameIdx & 1)) * PI;
+  }
+
+  // True NTSC subcarrier phase: fsc cycles/pixel + 227.5 cycles/line (gives
+  // natural 180° line-to-line inversion) + 4-field cycle + encoder burst offset.
+  float subPhase = TWO_PI * (u_fsc_per_px * px + u_cyc_per_line * lineIdx)
+                 + u_fieldPhase + u_burstRot + interlaceOffset;
+
+  // Composite: Y + I·cos(ωt) + Q·sin(ωt). In VHS color-under mode, heterodyne
+  // chroma to ~629 kHz before recording (severe bandlimit, characteristic beats).
+  float fxRatio = (u_modeColorUnder == 1) ? COLORUNDER_RATIO : 1.0;
+  float cuAmp = (u_modeColorUnder == 1) ? 0.55 : 1.0;
+  float subC = cos(subPhase * fxRatio);
+  float subS = sin(subPhase * fxRatio);
+  float chroma = (Ir * subC + Qr * subS) * chromaScale * u_chromaGain * cuAmp;
+  float composite = Y + chroma;
+
+  // Normalize composite to [0,1] for 8-bit framebuffers.
+  // Real composite range: Y (0..1) + chroma (±0.6) → roughly [-0.6, 1.6].
+  float compN = (composite + 0.6) / 2.2;
+  outC = vec4(compN,
+              clamp(Y, 0.0, 1.0),
+              Ir * 0.5 + 0.5,   // I packed [−1,1]→[0,1]
+              Qr * 0.5 + 0.5);
 }
 `;
 
-// Fragment 2: distort — noise, dropouts, head-switching tear at the bottom.
+// ─── FS_DISTORT ───────────────────────────────────────────────────────────────
+// Channel impairments. Causal (asymmetric) ringing emulates vestigial-sideband
+// overshoot. Gaussian noise via Box-Muller. Head switch corrupts bottom N px
+// with progressive tear + chroma lock loss.
 const FS_DISTORT = `#version 300 es
 precision highp float;
 in vec2 v_uv;
 out vec4 outC;
 uniform sampler2D u_tex;
 uniform vec2 u_res;
-uniform float u_noise;
 uniform float u_time;
-uniform float u_headSwitchPx;
+uniform float u_noise;
 uniform float u_ringing;
+uniform float u_headSwitchPx;
+uniform float u_dropout;
+uniform float u_tapeSkew;
 
-float hash(vec2 p){ p = fract(p*vec2(443.897,441.423)); p+=dot(p,p+19.19); return fract(p.x*p.y); }
+float hash(vec2 p){ p = fract(p*vec2(443.897,441.423)); p += dot(p, p+19.19); return fract(p.x*p.y); }
+float hash1(float x){ return fract(sin(x*12.9898) * 43758.5453); }
 
 void main() {
   vec2 uv = v_uv;
-  // Head switching: tear the bottom N pixels horizontally.
+  float py = uv.y * u_res.y;
+  float lineIdx = floor(py);
+  float timeFrame = floor(u_time * 60.0);
+
+  // Slow-drifting tape skew: sticky per-line, wanders every ~10 frames.
+  float skewN = hash1(lineIdx * 7.31 + floor(timeFrame * 0.1)) - 0.5;
+  uv.x += skewN * u_tapeSkew;
+
+  // Head switching at bottom: horizontal tear + noise band.
   float fromBot = (1.0 - uv.y) * u_res.y;
-  if (fromBot < u_headSwitchPx) {
-    float warp = (u_headSwitchPx - fromBot) / max(1.0, u_headSwitchPx);
-    float jitter = (hash(vec2(uv.y * 99.0, u_time)) - 0.5) * warp * 0.15;
-    uv.x = uv.x + jitter;
+  float inHead = clamp((u_headSwitchPx - fromBot) / max(1.0, u_headSwitchPx), 0.0, 1.0);
+  if (inHead > 0.0) {
+    float tear = (hash(vec2(lineIdx, timeFrame)) - 0.5) * inHead * 0.35;
+    uv.x += tear;
+  }
+
+  // Line dropout: pull sample from next line as if tape lost contact.
+  float dprob = hash1(lineIdx * 23.7 + timeFrame);
+  if (dprob < u_dropout) {
+    uv.y = uv.y + 2.0 / u_res.y;
   }
 
   vec4 c = texture(u_tex, uv);
 
-  // Per-pixel noise on composite channel (R) only — preserves chroma cleanly.
-  float n = (hash(uv * u_res + u_time) - 0.5) * 2.0 * u_noise;
-  c.r += n;
+  // Gaussian additive noise on composite channel (Box-Muller transform).
+  float n1 = hash(uv * u_res + u_time * 137.0);
+  float n2 = hash(uv * u_res + u_time *  59.0 + 7.0);
+  float ng = sqrt(-2.0 * log(max(n1, 1e-6))) * cos(6.283185 * n2);
+  c.r += ng * u_noise;
 
-  // Sharpen-then-overshoot ringing on composite (R).
+  // Causal ringing — emulates VSB overshoot: current sample overshoots prior LPF estimate.
   float pxStep = 1.0 / u_res.x;
-  float l = texture(u_tex, vec2(uv.x - pxStep, uv.y)).r;
-  float r = texture(u_tex, vec2(uv.x + pxStep, uv.y)).r;
-  float ring = (c.r - 0.5*(l + r)) * u_ringing;
-  c.r += ring;
+  float lm1 = texture(u_tex, uv + vec2(-pxStep,       0.0)).r;
+  float lm2 = texture(u_tex, uv + vec2(-2.0*pxStep,   0.0)).r;
+  float lm3 = texture(u_tex, uv + vec2(-3.0*pxStep,   0.0)).r;
+  float predicted = 0.5 * lm1 + 0.3 * lm2 + 0.2 * lm3;
+  float err = c.r - predicted;
+  c.r += err * u_ringing * 0.7;
+
+  // In head-switch zone, chroma lock collapses — force neutral packed I/Q.
+  if (inHead > 0.6) { c.b = 0.5; c.a = 0.5; }
 
   outC = c;
 }
 `;
 
-// Fragment 3: decode composite → YIQ → RGB.
+// ─── FS_DECODE ────────────────────────────────────────────────────────────────
+// Three decoder modes:
+//   0 = notch: 7-tap horizontal LPF for Y, composite−Y for C
+//   1 = 2-line comb: Y=(s+s')/2, C=(s−s')/2 (exploits 180° line-to-line chroma flip)
+//   2 = 3-line comb: Y=(s₋+2s+s₊)/4, C=s−(s₋+s₊)/2
+// Synchronous demodulation of C via cos/sin of burst-locked subcarrier
+// reference, followed by Gaussian LPF at I (1.3 MHz) and Q (0.4 MHz).
 const FS_DECODE = `#version 300 es
 precision highp float;
 in vec2 v_uv;
 out vec4 outC;
 uniform sampler2D u_tex;
 uniform vec2 u_res;
-uniform int   u_modeSVideo;  // 1 = skip subcarrier crosstalk
-uniform int   u_modeRGB;     // 1 = bypass
+uniform float u_fsc_per_px;
+uniform float u_cyc_per_line;
+uniform float u_fieldPhase;
+uniform float u_burstRot;
+uniform int   u_modeSVideo;
+uniform int   u_modeRGB;
+uniform int   u_decoder;
+uniform int   u_iTaps;
+uniform int   u_qTaps;
+uniform float u_iSigma;
+uniform float u_qSigma;
 uniform float u_brightness;
-uniform float u_genFade;     // generation fade (lowers chroma each pass)
+uniform float u_genFade;
+uniform int   u_modeInterlace;
+uniform int   u_frameIdx;
+
+const float PI = 3.141592653589793;
+const float TWO_PI = 6.283185307179586;
+const float IAXIS_RAD = 0.5759586531581288;
 
 vec3 yiq2rgb(vec3 c) {
   return mat3(
-    1.0,  1.0,  1.0,
-    0.956, -0.272, -1.106,
-    0.621, -0.647, 1.703
+    1.0,   1.0,   1.0,
+    0.956,-0.272,-1.106,
+    0.621,-0.647, 1.703
   ) * c;
+}
+
+float compAt(vec2 uv) {
+  return texture(u_tex, uv).r * 2.2 - 0.6;
 }
 
 void main() {
   vec4 packed = texture(u_tex, v_uv);
-  if (u_modeRGB == 1) { outC = vec4(packed.rgb * u_brightness, 1.0); return; }
-
-  // Recover Y by horizontally averaging composite (cancels subcarrier ripple).
-  float pxStep = 1.0 / u_res.x;
-  float y =
-      0.0625 * texture(u_tex, v_uv + vec2(-3.0*pxStep, 0.0)).r
-    + 0.1250 * texture(u_tex, v_uv + vec2(-2.0*pxStep, 0.0)).r
-    + 0.1875 * texture(u_tex, v_uv + vec2(-1.0*pxStep, 0.0)).r
-    + 0.2500 * packed.r
-    + 0.1875 * texture(u_tex, v_uv + vec2( 1.0*pxStep, 0.0)).r
-    + 0.1250 * texture(u_tex, v_uv + vec2( 2.0*pxStep, 0.0)).r
-    + 0.0625 * texture(u_tex, v_uv + vec2( 3.0*pxStep, 0.0)).r;
-
-  vec2 chroma;
-  if (u_modeSVideo == 1) {
-    // S-Video: trust the encoder's clean Y/I — no demod, no dot crawl.
-    // Recover I from packed.b (we packed I*0.5+0.5 in encoder).
-    float I = packed.b * 2.0 - 1.0;
-    // Q wasn't packed; reconstruct from composite using sine quadrature.
-    float px = v_uv.x * u_res.x;
-    float phase = px * 1.5707963;
-    float Q = 0.0;
-    for (int i = -3; i <= 3; ++i) {
-      float fi = float(i);
-      vec2 off = vec2(fi * pxStep, 0.0);
-      float comp = texture(u_tex, v_uv + off).r;
-      float ph = phase + fi * 1.5707963;
-      Q += (comp - y) * cos(ph);
-    }
-    Q *= (1.0 / 4.0);
-    chroma = vec2(I, Q);
-  } else {
-    // Composite demod: extract I,Q by subcarrier-locked sampling. The phase
-    // relationship to the encoder produces real dot-crawl & cross-color.
-    float px = v_uv.x * u_res.x;
-    float phase = px * 1.5707963;
-    float I = 0.0, Q = 0.0;
-    for (int i = -3; i <= 3; ++i) {
-      float fi = float(i);
-      float comp = texture(u_tex, v_uv + vec2(fi * pxStep, 0.0)).r;
-      float ph = phase + fi * 1.5707963;
-      I += (comp - y) * sin(ph);
-      Q += (comp - y) * cos(ph);
-    }
-    I *= 1.0 / 4.0;
-    Q *= 1.0 / 4.0;
-    chroma = vec2(I, Q);
+  if (u_modeRGB == 1) {
+    // Encoder stored raw RGB in G,B,A when in RGB bypass mode.
+    outC = vec4(clamp(packed.gba * u_brightness, 0.0, 1.0), 1.0);
+    return;
   }
 
-  chroma *= u_genFade;
-  vec3 rgb = yiq2rgb(vec3(y, chroma));
+  float px = v_uv.x * u_res.x;
+  float py = v_uv.y * u_res.y;
+  float lineIdx = floor(py);
+  float pxStep = 1.0 / u_res.x;
+  float lineStep = 1.0 / u_res.y;
+
+  // S-Video: encoder-packed Y, I, Q — skip demodulation entirely (no dot crawl).
+  if (u_modeSVideo == 1) {
+    float Y = packed.g;
+    float Ir = packed.b * 2.0 - 1.0;
+    float Qr = packed.a * 2.0 - 1.0;
+    // Unrotate 33° NTSC frame back to YIQ.
+    float cr = cos(-IAXIS_RAD), sr = sin(-IAXIS_RAD);
+    float I = Ir * cr - Qr * sr;
+    float Q = Ir * sr + Qr * cr;
+    I *= u_genFade; Q *= u_genFade;
+    vec3 rgb = yiq2rgb(vec3(Y, I, Q));
+    outC = vec4(clamp(rgb * u_brightness, 0.0, 1.0), 1.0);
+    return;
+  }
+
+  // Luma recovery.
+  float Yc, Cc;
+  float sCenter = compAt(v_uv);
+  if (u_decoder == 1) {
+    float sNext = compAt(v_uv + vec2(0.0,  lineStep));
+    Yc = 0.5 * (sCenter + sNext);
+    Cc = 0.5 * (sCenter - sNext);
+  } else if (u_decoder == 2) {
+    float sPrev = compAt(v_uv - vec2(0.0, lineStep));
+    float sNext = compAt(v_uv + vec2(0.0, lineStep));
+    Yc = 0.25 * (sPrev + 2.0 * sCenter + sNext);
+    Cc = sCenter - 0.5 * (sPrev + sNext);
+  } else {
+    Yc = 0.0625 * compAt(v_uv + vec2(-3.0*pxStep, 0.0))
+       + 0.1250 * compAt(v_uv + vec2(-2.0*pxStep, 0.0))
+       + 0.1875 * compAt(v_uv + vec2(-1.0*pxStep, 0.0))
+       + 0.2500 * sCenter
+       + 0.1875 * compAt(v_uv + vec2( 1.0*pxStep, 0.0))
+       + 0.1250 * compAt(v_uv + vec2( 2.0*pxStep, 0.0))
+       + 0.0625 * compAt(v_uv + vec2( 3.0*pxStep, 0.0));
+    Cc = sCenter - Yc;
+  }
+
+  // Synchronous chroma demod with burst-locked phase reference.
+  float interlaceOffset = (u_modeInterlace == 1) ? float((u_frameIdx & 1)) * PI : 0.0;
+  int iHalf = max(0, (u_iTaps - 1) / 2);
+  int qHalf = max(0, (u_qTaps - 1) / 2);
+  int bigHalf = max(iHalf, qHalf);
+  float iAcc = 0.0, qAcc = 0.0, iW = 0.0, qW = 0.0;
+
+  for (int i = -31; i <= 31; ++i) {
+    if (i < -bigHalf || i > bigHalf) continue;
+    float fi = float(i);
+    vec2 off = vec2(fi * pxStep, 0.0);
+    float sN = compAt(v_uv + off);
+    float cN;
+    if (u_decoder == 1) {
+      float sNn = compAt(v_uv + off + vec2(0.0, lineStep));
+      cN = 0.5 * (sN - sNn);
+    } else if (u_decoder == 2) {
+      float sPn = compAt(v_uv + off - vec2(0.0, lineStep));
+      float sNn = compAt(v_uv + off + vec2(0.0, lineStep));
+      cN = sN - 0.5 * (sPn + sNn);
+    } else {
+      // Notch mode: approximate C(off) as s(off) − Yc (Yc varies slowly horizontally).
+      cN = sN - Yc;
+    }
+    float pxAt = px + fi;
+    float subPhase = TWO_PI * (u_fsc_per_px * pxAt + u_cyc_per_line * lineIdx)
+                   + u_fieldPhase + u_burstRot + interlaceOffset;
+    float co = cos(subPhase), si = sin(subPhase);
+    if (i >= -iHalf && i <= iHalf) {
+      float a = fi / max(u_iSigma, 0.0001);
+      float w = exp(-0.5 * a * a);
+      iAcc += w * cN * co; iW += w;
+    }
+    if (i >= -qHalf && i <= qHalf) {
+      float a = fi / max(u_qSigma, 0.0001);
+      float w = exp(-0.5 * a * a);
+      qAcc += w * cN * si; qW += w;
+    }
+  }
+  // Factor of 2 from synchronous demod of cos²+sin².
+  float Ir = 2.0 * iAcc / max(iW, 1e-6);
+  float Qr = 2.0 * qAcc / max(qW, 1e-6);
+
+  float cr = cos(-IAXIS_RAD), sr = sin(-IAXIS_RAD);
+  float I = Ir * cr - Qr * sr;
+  float Q = Ir * sr + Qr * cr;
+  I *= u_genFade; Q *= u_genFade;
+
+  vec3 rgb = yiq2rgb(vec3(Yc, I, Q));
   outC = vec4(clamp(rgb * u_brightness, 0.0, 1.0), 1.0);
 }
 `;
 
-// Pass-through copy shader used to chain framebuffers cleanly when generation>1.
+// ─── FS_CRT ───────────────────────────────────────────────────────────────────
+// CRT phosphor simulation: horizontal bloom (halation), shadow/aperture/slot
+// masks (additive triads), scanlines (vertical sin²), phosphor glow upward
+// (simulates electron beam rise), radial vignette, barrel distortion.
+const FS_CRT = `#version 300 es
+precision highp float;
+in vec2 v_uv;
+out vec4 outC;
+uniform sampler2D u_tex;
+uniform vec2 u_res;
+uniform float u_scanline;
+uniform float u_mask;
+uniform int   u_maskType;
+uniform float u_maskPitch;
+uniform float u_bloom;
+uniform float u_glow;
+uniform float u_vignette;
+uniform float u_barrel;
+
+vec2 warp(vec2 uv, float k) {
+  vec2 c = uv * 2.0 - 1.0;
+  float r2 = dot(c, c);
+  c *= 1.0 + k * r2;
+  return c * 0.5 + 0.5;
+}
+
+vec3 sampleBloom(vec2 uv) {
+  vec2 px = 1.0 / u_res;
+  float W[7] = float[](0.05, 0.10, 0.20, 0.30, 0.20, 0.10, 0.05);
+  vec3 sum = vec3(0.0);
+  for (int i = -3; i <= 3; ++i) {
+    sum += texture(u_tex, uv + vec2(float(i) * px.x * 2.5, 0.0)).rgb * W[i+3];
+  }
+  return sum;
+}
+
+vec3 triad(float px, float pitch, int type, float rowPhase) {
+  float seg = pitch / 3.0;
+  float phase = px;
+  if (type == 2 && rowPhase > 0.5) phase += seg * 1.5;
+  else if (type == 3 && rowPhase > 0.5) phase += seg * 0.5;
+  float t = mod(phase, pitch);
+  if (t < seg)           return vec3(1.0, 0.25, 0.25);
+  else if (t < 2.0 * seg) return vec3(0.25, 1.0, 0.25);
+  else                    return vec3(0.25, 0.25, 1.0);
+}
+
+void main() {
+  vec2 uv = warp(v_uv, u_barrel);
+  if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+    outC = vec4(0.0, 0.0, 0.0, 1.0); return;
+  }
+
+  vec3 base = texture(u_tex, uv).rgb;
+
+  // Horizontal bloom (halation from bright-scanline saturation).
+  vec3 bloom = sampleBloom(uv);
+  bloom = max(bloom - 0.4, 0.0) * u_bloom;
+  base += bloom;
+
+  // Upward phosphor glow — simulates beam rise time.
+  vec3 upg = texture(u_tex, uv + vec2(0.0, -1.5 / u_res.y)).rgb;
+  base += max(upg - 0.5, 0.0) * u_glow * 0.4;
+
+  // Scanlines: sin² modulation at line pitch, strength linear in slider.
+  float py = uv.y * u_res.y;
+  float sMod = pow(sin(py * 3.14159265 * 0.5) * 0.5 + 0.5, 2.0);
+  base *= (1.0 - u_scanline * (1.0 - sMod));
+
+  // Mask.
+  if (u_mask > 0.0 && u_maskType > 0) {
+    float px = uv.x * u_res.x;
+    float rowPhase = mod(floor(uv.y * u_res.y / u_maskPitch), 2.0);
+    vec3 m = triad(px, u_maskPitch, u_maskType, rowPhase);
+    base = mix(base, base * m, u_mask);
+  }
+
+  // Radial vignette.
+  vec2 cVec = uv - 0.5;
+  float vig = 1.0 - u_vignette * dot(cVec, cVec) * 3.5;
+  base *= max(vig, 0.0);
+
+  outC = vec4(clamp(base, 0.0, 1.0), 1.0);
+}
+`;
+
 const FS_COPY = `#version 300 es
 precision highp float;
 in vec2 v_uv;
@@ -384,7 +714,6 @@ function compile(src, type) {
   }
   return sh;
 }
-
 function program(fs) {
   const p = gl.createProgram();
   gl.attachShader(p, compile(VS, gl.VERTEX_SHADER));
@@ -401,6 +730,7 @@ function program(fs) {
 const PROG_ENC = program(FS_ENCODE);
 const PROG_DST = program(FS_DISTORT);
 const PROG_DEC = program(FS_DECODE);
+const PROG_CRT = program(FS_CRT);
 const PROG_CPY = program(FS_COPY);
 
 // fullscreen triangle
@@ -412,7 +742,7 @@ gl.bindVertexArray(vao);
 gl.enableVertexAttribArray(0);
 gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-// Texture for source frame.
+// Source texture.
 const srcTex = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, srcTex);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -420,37 +750,63 @@ gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-// Two ping-pong framebuffers for the encode→distort→decode chain.
-function makeFBO(w, h) {
+// Framebuffers — A/B for encode/distort ping-pong, C for decoder→CRT chain.
+function makeFBO(w, h, floatFmt = false) {
   const tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  if (floatFmt && USE_F16) {
+    // half-float composite buffer — preserves signal dynamic range
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, EXT_HALF_LINEAR ? gl.LINEAR : gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, EXT_HALF_LINEAR ? gl.LINEAR : gl.NEAREST);
+  } else {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  }
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   const fb = gl.createFramebuffer();
   gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  if (ok !== gl.FRAMEBUFFER_COMPLETE) {
+    console.warn('FBO incomplete', ok.toString(16));
+  }
   return { tex, fb, w, h };
 }
-let fboA = null, fboB = null;
+let fboA = null, fboB = null, fboC = null;
 function ensureFBOs(w, h) {
   if (fboA && fboA.w === w && fboA.h === h) return;
-  if (fboA) { gl.deleteTexture(fboA.tex); gl.deleteFramebuffer(fboA.fb); }
-  if (fboB) { gl.deleteTexture(fboB.tex); gl.deleteFramebuffer(fboB.fb); }
-  fboA = makeFBO(w, h);
-  fboB = makeFBO(w, h);
+  for (const f of [fboA, fboB, fboC]) {
+    if (f) { gl.deleteTexture(f.tex); gl.deleteFramebuffer(f.fb); }
+  }
+  fboA = makeFBO(w, h, true);   // encoder output — composite + packed Y/I/Q
+  fboB = makeFBO(w, h, true);   // distort output
+  fboC = makeFBO(w, h, false);  // decoder output (RGB) → CRT input
 }
 
-// ---- state ------------------------------------------------------------------
+// ─── state ────────────────────────────────────────────────────────────────────
 const state = {
   source: pickSrc || 'phonelink',
   outW: 1080, outH: 1920,
-  noise: 0.04, chroma: 0.55, dot: 0.6, ring: 0.35, jit: 0.0015,
-  hue: 0.04, hsw: 14, sat: 1.05, lum: 1.0, taps: 9, gen: 1,
-  mode: 'composite',
+  // channel
+  noise: 0.04, ring: 0.35, jit: 0.0015, dp: 0, dg: 0,
+  hue: 2.3, skew: 0, hsw: 14, drop: 0, gen: 1,
+  // encoder bandwidth
+  ybw: 4.2, ibw: 1.3, qbw: 0.4, qual: 2.0,
+  // mode
+  mode: pickMode || 'composite',
+  decoder: pickDecoder ? parseInt(pickDecoder) : 1,
+  colorunder: 0,
+  interlace: 0,
+  // color
+  sat: 1.05, lum: 1.0,
+  // CRT
+  scan: 0.2, mask: 0.15, masktype: 0, pitch: 3,
+  bloom: 0.4, glow: 0.2, vig: 0.25, barrel: 0.03,
+  // misc
   videoReady: false,
   srcW: 0, srcH: 0,
   stream: null,
@@ -458,11 +814,54 @@ const state = {
 };
 
 const PRESETS = {
-  vhs:    { noise:0.06, chroma:0.7,  dot:0.7, ring:0.4,  jit:0.003,  hue:0.05, hsw:18, sat:1.1, lum:1.0, taps:11, gen:2, mode:'composite' },
-  cable:  { noise:0.02, chroma:0.4,  dot:0.45, ring:0.25, jit:0.001, hue:0.0,  hsw:0,  sat:1.0, lum:1.0, taps:7,  gen:1, mode:'composite' },
-  dirty:  { noise:0.18, chroma:0.85, dot:1.1, ring:0.55, jit:0.008,  hue:0.18, hsw:38, sat:1.2, lum:0.9, taps:13, gen:3, mode:'composite' },
-  clean:  { noise:0.01, chroma:0.25, dot:0.0, ring:0.15, jit:0.0,    hue:0.0,  hsw:0,  sat:1.0, lum:1.0, taps:5,  gen:1, mode:'svideo' },
-  off:    { noise:0.0,  chroma:0.0,  dot:0.0, ring:0.0,  jit:0.0,    hue:0.0,  hsw:0,  sat:1.0, lum:1.0, taps:3,  gen:1, mode:'rgb' },
+  // VHS-era recording: heavy Q bandlimit, noise, tape skew, heavy CRT.
+  vhs: {
+    noise: 0.05, ring: 0.38, jit: 0.0035, dp: 8, dg: 0.12, hue: 4, skew: 0.008, hsw: 22, drop: 0.004, gen: 2,
+    ybw: 3.0, ibw: 1.1, qbw: 0.35, qual: 2.0,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 0,
+    sat: 1.1, lum: 1.0,
+    scan: 0.28, mask: 0.18, masktype: 1, pitch: 3, bloom: 0.55, glow: 0.25, vig: 0.35, barrel: 0.07,
+  },
+  // Broadcast-era TV received off-air: minimal impairment, slight cross-color.
+  broadcast: {
+    noise: 0.015, ring: 0.2, jit: 0.001, dp: 3, dg: 0.04, hue: 1.5, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 4.2, ibw: 1.3, qbw: 0.4, qual: 2.0,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.0, lum: 1.0,
+    scan: 0.22, mask: 0.12, masktype: 2, pitch: 3, bloom: 0.3, glow: 0.15, vig: 0.2, barrel: 0.04,
+  },
+  // Cable: clean, flat, modern.
+  cable: {
+    noise: 0.008, ring: 0.15, jit: 0.0005, dp: 1, dg: 0.02, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 4.2, ibw: 1.3, qbw: 0.4, qual: 2.0,
+    mode: 'composite', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.0, lum: 1.0,
+    scan: 0.12, mask: 0.08, masktype: 1, pitch: 3, bloom: 0.25, glow: 0.1, vig: 0.15, barrel: 0.02,
+  },
+  // Dirty tape: nth-generation dub, heavy impairment.
+  dirty: {
+    noise: 0.14, ring: 0.55, jit: 0.01, dp: 18, dg: 0.3, hue: 12, skew: 0.018, hsw: 42, drop: 0.03, gen: 3,
+    ybw: 2.5, ibw: 0.9, qbw: 0.3, qual: 1.8,
+    mode: 'composite', decoder: 0, colorunder: 1, interlace: 0,
+    sat: 1.15, lum: 0.92,
+    scan: 0.35, mask: 0.22, masktype: 2, pitch: 3, bloom: 0.7, glow: 0.35, vig: 0.45, barrel: 0.08,
+  },
+  // Clean NTSC: S-Video feed to a nice studio monitor.
+  clean: {
+    noise: 0.003, ring: 0.08, jit: 0, dp: 0, dg: 0, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 4.2, ibw: 1.3, qbw: 0.4, qual: 2.5,
+    mode: 'svideo', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.0, lum: 1.0,
+    scan: 0.15, mask: 0.1, masktype: 1, pitch: 3, bloom: 0.2, glow: 0.08, vig: 0.1, barrel: 0.015,
+  },
+  // Off: pure RGB, no CRT.
+  off: {
+    noise: 0, ring: 0, jit: 0, dp: 0, dg: 0, hue: 0, skew: 0, hsw: 0, drop: 0, gen: 1,
+    ybw: 6.0, ibw: 3.0, qbw: 2.0, qual: 1.0,
+    mode: 'rgb', decoder: 1, colorunder: 0, interlace: 0,
+    sat: 1.0, lum: 1.0,
+    scan: 0, mask: 0, masktype: 0, pitch: 3, bloom: 0, glow: 0, vig: 0, barrel: 0,
+  },
 };
 
 function applyPreset(name) {
@@ -473,51 +872,92 @@ function applyPreset(name) {
 }
 
 function syncUI() {
-  $('noise').value = state.noise;  $('v_noise').textContent = state.noise.toFixed(3);
-  $('chroma').value = state.chroma; $('v_chroma').textContent = state.chroma.toFixed(2);
-  $('dot').value = state.dot;       $('v_dot').textContent = state.dot.toFixed(2);
-  $('ring').value = state.ring;     $('v_ring').textContent = state.ring.toFixed(2);
-  $('jit').value = state.jit;       $('v_jit').textContent = state.jit.toFixed(4);
-  $('hue').value = state.hue;       $('v_hue').textContent = state.hue.toFixed(3);
-  $('hsw').value = state.hsw;       $('v_hsw').textContent = String(state.hsw|0);
-  $('sat').value = state.sat;       $('v_sat').textContent = state.sat.toFixed(2);
-  $('lum').value = state.lum;       $('v_lum').textContent = state.lum.toFixed(2);
-  $('taps').value = state.taps;     $('v_taps').textContent = String(state.taps|0);
-  $('gen').value = state.gen;       $('v_gen').textContent = String(state.gen|0);
+  const set = (id, k, dec) => {
+    const el = $(id); const out = $('v_' + id);
+    if (!el) return;
+    el.value = state[k] ?? 0;
+    if (out) {
+      const v = state[k];
+      out.textContent = (typeof v === 'number' && !Number.isInteger(v)) ? v.toFixed(dec) : String(v|0);
+    }
+  };
+  set('noise', 'noise', 3);
+  set('ring', 'ring', 2);
+  set('jit', 'jit', 4);
+  set('dp', 'dp', 1);
+  set('dg', 'dg', 2);
+  set('hue', 'hue', 1);
+  set('skew', 'skew', 3);
+  set('hsw', 'hsw', 0);
+  set('drop', 'drop', 3);
+  set('gen', 'gen', 0);
+  set('ybw', 'ybw', 2);
+  set('ibw', 'ibw', 2);
+  set('qbw', 'qbw', 2);
+  set('qual', 'qual', 2);
+  set('sat', 'sat', 2);
+  set('lum', 'lum', 2);
+  set('scan', 'scan', 2);
+  set('mask', 'mask', 2);
+  set('pitch', 'pitch', 0);
+  set('bloom', 'bloom', 2);
+  set('glow', 'glow', 2);
+  set('vig', 'vig', 2);
+  set('barrel', 'barrel', 3);
   $('mode').value = state.mode;
+  $('decoder').value = String(state.decoder);
+  $('masktype').value = String(state.masktype);
+  $('colorunder').checked = !!state.colorunder;
+  $('interlace').checked = !!state.interlace;
 }
 
-function bindRange(id, key, parse=parseFloat, dec=3) {
-  const el = $(id), out = $('v_'+id);
+function bindRange(id, key, parse = parseFloat, dec = 3) {
+  const el = $(id), out = $('v_' + id);
+  if (!el) return;
   el.addEventListener('input', () => {
     state[key] = parse(el.value);
-    out.textContent = (typeof state[key] === 'number' && !Number.isInteger(state[key])) ? state[key].toFixed(dec) : String(state[key]);
+    if (out) {
+      out.textContent = (typeof state[key] === 'number' && !Number.isInteger(state[key])) ? state[key].toFixed(dec) : String(state[key]);
+    }
   });
 }
-bindRange('noise', 'noise');
-bindRange('chroma','chroma',parseFloat,2);
-bindRange('dot','dot',parseFloat,2);
-bindRange('ring','ring',parseFloat,2);
-bindRange('jit','jit',parseFloat,4);
-bindRange('hue','hue',parseFloat,3);
-bindRange('hsw','hsw',(v)=>parseInt(v,10),0);
-bindRange('sat','sat',parseFloat,2);
-bindRange('lum','lum',parseFloat,2);
-bindRange('taps','taps',(v)=>parseInt(v,10),0);
-bindRange('gen','gen',(v)=>parseInt(v,10),0);
+bindRange('noise', 'noise', parseFloat, 3);
+bindRange('ring', 'ring', parseFloat, 2);
+bindRange('jit', 'jit', parseFloat, 4);
+bindRange('dp', 'dp', parseFloat, 1);
+bindRange('dg', 'dg', parseFloat, 2);
+bindRange('hue', 'hue', parseFloat, 1);
+bindRange('skew', 'skew', parseFloat, 3);
+bindRange('hsw', 'hsw', (v) => parseInt(v, 10), 0);
+bindRange('drop', 'drop', parseFloat, 3);
+bindRange('gen', 'gen', (v) => parseInt(v, 10), 0);
+bindRange('ybw', 'ybw', parseFloat, 2);
+bindRange('ibw', 'ibw', parseFloat, 2);
+bindRange('qbw', 'qbw', parseFloat, 2);
+bindRange('qual', 'qual', parseFloat, 2);
+bindRange('sat', 'sat', parseFloat, 2);
+bindRange('lum', 'lum', parseFloat, 2);
+bindRange('scan', 'scan', parseFloat, 2);
+bindRange('mask', 'mask', parseFloat, 2);
+bindRange('pitch', 'pitch', (v) => parseInt(v, 10), 0);
+bindRange('bloom', 'bloom', parseFloat, 2);
+bindRange('glow', 'glow', parseFloat, 2);
+bindRange('vig', 'vig', parseFloat, 2);
+bindRange('barrel', 'barrel', parseFloat, 3);
 $('mode').addEventListener('change', () => state.mode = $('mode').value);
+$('decoder').addEventListener('change', () => state.decoder = parseInt($('decoder').value, 10));
+$('masktype').addEventListener('change', () => state.masktype = parseInt($('masktype').value, 10));
+$('colorunder').addEventListener('change', () => state.colorunder = $('colorunder').checked ? 1 : 0);
+$('interlace').addEventListener('change', () => state.interlace = $('interlace').checked ? 1 : 0);
 document.querySelectorAll('.preset button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.p)));
 
-// ---- source switching -------------------------------------------------------
+// ─── source switching ─────────────────────────────────────────────────────────
 const vid = $('vid');
 
-// Substrings (lowercased) that mark a Phone-Link / Win11 virtual webcam.
-// Match generously — Microsoft has shipped 3+ different labels over time.
 const PHONE_LINK_HINTS = [
   'phone link', 'windows virtual camera', 'virtual camera (windows',
   'phone camera', 'samsung camera', 'connected camera',
 ];
-
 function isPhoneLinkLabel(label) {
   const s = (label || '').toLowerCase();
   return PHONE_LINK_HINTS.some(h => s.includes(h));
@@ -526,8 +966,7 @@ function isPhoneLinkLabel(label) {
 async function listCameras(autoSelect) {
   const sel = $('device');
   try {
-    // Prompt once so we get device labels.
-    const tmp = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }).catch(()=>null);
+    const tmp = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }).catch(() => null);
     if (tmp) tmp.getTracks().forEach(t => t.stop());
     const devs = await navigator.mediaDevices.enumerateDevices();
     const cams = devs.filter(d => d.kind === 'videoinput');
@@ -621,29 +1060,45 @@ function makeTestPattern() {
   const c = document.createElement('canvas');
   c.width = 1280; c.height = 720;
   const ctx = c.getContext('2d');
-  // SMPTE-ish color bars
-  const bars = ['#bfbfbf','#bfbf00','#00bfbf','#00bf00','#bf00bf','#bf0000','#0000bf'];
+  // SMPTE 75% color bars (top 2/3)
+  const bars = ['#bfbfbf', '#bfbf00', '#00bfbf', '#00bf00', '#bf00bf', '#bf0000', '#0000bf'];
   const w = c.width / bars.length;
-  for (let i=0;i<bars.length;i++){ ctx.fillStyle = bars[i]; ctx.fillRect(i*w, 0, w, c.height*0.66); }
+  for (let i = 0; i < bars.length; i++) {
+    ctx.fillStyle = bars[i]; ctx.fillRect(i * w, 0, w, c.height * 0.66);
+  }
+  // Reverse-order IRE bars (bottom 1/16)
+  const rev = ['#0000bf', '#121212', '#bf00bf', '#121212', '#00bfbf', '#121212', '#bfbfbf'];
+  const y2 = c.height * 0.66;
+  const h2 = c.height * 0.08;
+  for (let i = 0; i < rev.length; i++) {
+    ctx.fillStyle = rev[i]; ctx.fillRect(i * w, y2, w, h2);
+  }
   // PLUGE
-  ctx.fillStyle = '#000'; ctx.fillRect(0, c.height*0.66, c.width, c.height);
+  const y3 = y2 + h2;
+  ctx.fillStyle = '#000'; ctx.fillRect(0, y3, c.width, c.height - y3);
+  // -I, white, +Q, black bars
+  const p = c.width / 12;
+  ctx.fillStyle = '#1d3f66'; ctx.fillRect(0, y3, 3 * p, c.height - y3);      // -I
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(3 * p, y3, 3 * p, c.height - y3);  // white
+  ctx.fillStyle = '#551c7a'; ctx.fillRect(6 * p, y3, 3 * p, c.height - y3);  // +Q
+  ctx.fillStyle = '#000000'; ctx.fillRect(9 * p, y3, 3 * p, c.height - y3);  // black
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 64px monospace';
-  ctx.fillText('NTSC TEST', 40, c.height*0.85);
+  ctx.font = 'bold 48px monospace';
+  ctx.fillText('NTSC TEST', 40, c.height * 0.55);
   state.testCanvas = c;
   state.srcW = c.width; state.srcH = c.height;
   state.videoReady = true;
   setStatus('test pattern');
 }
 
-// ---- canvas sizing ----------------------------------------------------------
+// ─── canvas sizing ────────────────────────────────────────────────────────────
 function applySize() {
   const v = $('size').value;
   if (v === 'match') {
     state.outW = state.srcW || 1280;
     state.outH = state.srcH || 720;
   } else {
-    const [w,h] = v.split('x').map(Number);
+    const [w, h] = v.split('x').map(Number);
     state.outW = w; state.outH = h;
   }
   cv.width = state.outW;
@@ -661,10 +1116,9 @@ function fitCanvas() {
   cv.style.height = h + 'px';
 }
 window.addEventListener('resize', fitCanvas);
-
 $('size').addEventListener('change', applySize);
 
-// ---- source UI --------------------------------------------------------------
+// ─── source UI ────────────────────────────────────────────────────────────────
 function showSourceRow() {
   $('cam-row').style.display = (state.source === 'cam' || state.source === 'phonelink') ? '' : 'none';
   $('file-row').style.display = state.source === 'file' ? '' : 'none';
@@ -697,11 +1151,11 @@ $('rescan').addEventListener('click', async () => {
 $('file').addEventListener('change', e => { const f = e.target.files[0]; if (f) loadFileBlob(f); });
 $('filebtn').addEventListener('click', () => $('file').click());
 $('loadurl').addEventListener('click', () => { const u = $('url').value.trim(); if (u) loadURL(u); });
-const drop = $('drop');
-drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
-drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-drop.addEventListener('drop', e => {
-  e.preventDefault(); drop.classList.remove('over');
+const dropEl = $('drop');
+dropEl.addEventListener('dragover', e => { e.preventDefault(); dropEl.classList.add('over'); });
+dropEl.addEventListener('dragleave', () => dropEl.classList.remove('over'));
+dropEl.addEventListener('drop', e => {
+  e.preventDefault(); dropEl.classList.remove('over');
   const f = e.dataTransfer.files[0];
   if (f) { state.source = 'file'; $('src').value = 'file'; loadFileBlob(f); }
 });
@@ -713,13 +1167,27 @@ vid.addEventListener('loadedmetadata', () => {
   if ($('size').value === 'match') applySize();
 });
 
-// ---- panel toggle -----------------------------------------------------------
+// ─── panel toggle ─────────────────────────────────────────────────────────────
 $('toggle').addEventListener('click', () => $('panel').classList.toggle('hide'));
 if (hidePanel) $('panel').classList.add('hide');
-
 function setStatus(s) { $('status').textContent = s; }
 
-// ---- render loop ------------------------------------------------------------
+// ─── derived NTSC parameters (per canvas width) ────────────────────────────────
+function ntscParams(canvasW) {
+  const fs_mhz = canvasW / NTSC.active_us;           // effective horizontal sample rate
+  const fsc_per_px = NTSC.fsc_mhz / fs_mhz;
+  // Gaussian sigma in pixels for a given bandwidth cutoff (MHz).
+  // Empirical constant 0.187 places ~−3 dB at requested bw for Gaussian LPF.
+  const sigmaFromBW = (bw) => 0.187 * fs_mhz / Math.max(bw, 0.01);
+  return { fs_mhz, fsc_per_px, sigmaFromBW };
+}
+function tapsFromSigma(sigma, quality) {
+  // taps = 2·round(quality·σ) + 1, clamped to shader-loop range.
+  const half = Math.min(31, Math.max(1, Math.round(quality * sigma)));
+  return half * 2 + 1;
+}
+
+// ─── render loop ──────────────────────────────────────────────────────────────
 function uniLoc(p, n) { return gl.getUniformLocation(p, n); }
 
 function uploadSource() {
@@ -733,19 +1201,34 @@ function uploadSource() {
     }
   } else if (state.source === 'none' && state.testCanvas) {
     src = state.testCanvas;
+  } else if (state.source === 'phonelink') {
+    if (vid.readyState >= 2 && vid.videoWidth > 0) {
+      src = vid;
+      state.srcW = vid.videoWidth;
+      state.srcH = vid.videoHeight;
+      state.videoReady = true;
+    }
   }
   if (!src) return false;
   gl.bindTexture(gl.TEXTURE_2D, srcTex);
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
   try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); }
-  catch (e) { /* CORS or not-ready */ return false; }
+  catch (e) { return false; }
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
   return true;
 }
 
 function drawTri() { gl.drawArrays(gl.TRIANGLES, 0, 3); }
 
+let _frameIdx = 0;
+
 function passEncode(srcTexId, dstFbo) {
+  const p = ntscParams(dstFbo.w);
+  const iSigma = p.sigmaFromBW(state.ibw);
+  const qSigma = p.sigmaFromBW(state.qbw);
+  const iTaps = tapsFromSigma(iSigma, state.qual);
+  const qTaps = tapsFromSigma(qSigma, state.qual);
+
   gl.useProgram(PROG_ENC);
   gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo.fb);
   gl.viewport(0, 0, dstFbo.w, dstFbo.h);
@@ -754,15 +1237,26 @@ function passEncode(srcTexId, dstFbo) {
   gl.uniform1i(uniLoc(PROG_ENC, 'u_tex'), 0);
   gl.uniform2f(uniLoc(PROG_ENC, 'u_res'), dstFbo.w, dstFbo.h);
   gl.uniform2f(uniLoc(PROG_ENC, 'u_srcRes'), state.srcW, state.srcH);
-  gl.uniform1f(uniLoc(PROG_ENC, 'u_chromaBleed'), state.chroma);
-  gl.uniform1i(uniLoc(PROG_ENC, 'u_taps'), state.taps);
-  gl.uniform1f(uniLoc(PROG_ENC, 'u_subcarrier'), state.dot);
-  gl.uniform1f(uniLoc(PROG_ENC, 'u_jitter'), state.jit);
   gl.uniform1f(uniLoc(PROG_ENC, 'u_time'), performance.now() * 0.001);
-  gl.uniform1f(uniLoc(PROG_ENC, 'u_brightness'), state.lum);
+  const fieldPhase = (_frameIdx % 4) * (Math.PI / 2);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_fieldPhase'), fieldPhase);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_fsc_per_px'), p.fsc_per_px);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_cyc_per_line'), NTSC.cycles_per_line);
+  gl.uniform1i(uniLoc(PROG_ENC, 'u_iTaps'), iTaps);
+  gl.uniform1i(uniLoc(PROG_ENC, 'u_qTaps'), qTaps);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_iSigma'), iSigma);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_qSigma'), qSigma);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_chromaGain'), 0.6);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_hueDrift'), state.hue * Math.PI / 180);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_burstRot'), 0);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_diffPhase'), state.dp * Math.PI / 180);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_diffGain'), state.dg);
   gl.uniform1f(uniLoc(PROG_ENC, 'u_saturation'), state.sat);
-  gl.uniform1f(uniLoc(PROG_ENC, 'u_hueDrift'), state.hue);
+  gl.uniform1f(uniLoc(PROG_ENC, 'u_jitter'), state.jit);
   gl.uniform1i(uniLoc(PROG_ENC, 'u_modeRGB'), state.mode === 'rgb' ? 1 : 0);
+  gl.uniform1i(uniLoc(PROG_ENC, 'u_modeColorUnder'), state.colorunder ? 1 : 0);
+  gl.uniform1i(uniLoc(PROG_ENC, 'u_modeInterlace'), state.interlace ? 1 : 0);
+  gl.uniform1i(uniLoc(PROG_ENC, 'u_frameIdx'), _frameIdx);
   drawTri();
 }
 
@@ -774,29 +1268,22 @@ function passDistort(srcTexId, dstFbo) {
   gl.bindTexture(gl.TEXTURE_2D, srcTexId);
   gl.uniform1i(uniLoc(PROG_DST, 'u_tex'), 0);
   gl.uniform2f(uniLoc(PROG_DST, 'u_res'), dstFbo.w, dstFbo.h);
-  gl.uniform1f(uniLoc(PROG_DST, 'u_noise'), state.noise);
   gl.uniform1f(uniLoc(PROG_DST, 'u_time'), performance.now() * 0.001);
-  gl.uniform1f(uniLoc(PROG_DST, 'u_headSwitchPx'), state.hsw);
+  gl.uniform1f(uniLoc(PROG_DST, 'u_noise'), state.noise);
   gl.uniform1f(uniLoc(PROG_DST, 'u_ringing'), state.ring);
+  gl.uniform1f(uniLoc(PROG_DST, 'u_headSwitchPx'), state.hsw);
+  gl.uniform1f(uniLoc(PROG_DST, 'u_dropout'), state.drop);
+  gl.uniform1f(uniLoc(PROG_DST, 'u_tapeSkew'), state.skew);
   drawTri();
 }
 
-function passDecodeToScreen(srcTexId, genFade) {
-  gl.useProgram(PROG_DEC);
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  gl.viewport(0, 0, cv.width, cv.height);
-  gl.activeTexture(gl.TEXTURE0);
-  gl.bindTexture(gl.TEXTURE_2D, srcTexId);
-  gl.uniform1i(uniLoc(PROG_DEC, 'u_tex'), 0);
-  gl.uniform2f(uniLoc(PROG_DEC, 'u_res'), cv.width, cv.height);
-  gl.uniform1i(uniLoc(PROG_DEC, 'u_modeSVideo'), state.mode === 'svideo' ? 1 : 0);
-  gl.uniform1i(uniLoc(PROG_DEC, 'u_modeRGB'), state.mode === 'rgb' ? 1 : 0);
-  gl.uniform1f(uniLoc(PROG_DEC, 'u_brightness'), state.lum);
-  gl.uniform1f(uniLoc(PROG_DEC, 'u_genFade'), genFade);
-  drawTri();
-}
+function passDecode(srcTexId, dstFbo, genFade) {
+  const p = ntscParams(dstFbo.w);
+  const iSigma = p.sigmaFromBW(state.ibw);
+  const qSigma = p.sigmaFromBW(state.qbw);
+  const iTaps = tapsFromSigma(iSigma, state.qual);
+  const qTaps = tapsFromSigma(qSigma, state.qual);
 
-function passDecodeToFBO(srcTexId, dstFbo, genFade) {
   gl.useProgram(PROG_DEC);
   gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo.fb);
   gl.viewport(0, 0, dstFbo.w, dstFbo.h);
@@ -804,49 +1291,89 @@ function passDecodeToFBO(srcTexId, dstFbo, genFade) {
   gl.bindTexture(gl.TEXTURE_2D, srcTexId);
   gl.uniform1i(uniLoc(PROG_DEC, 'u_tex'), 0);
   gl.uniform2f(uniLoc(PROG_DEC, 'u_res'), dstFbo.w, dstFbo.h);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_fsc_per_px'), p.fsc_per_px);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_cyc_per_line'), NTSC.cycles_per_line);
+  const fieldPhase = (_frameIdx % 4) * (Math.PI / 2);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_fieldPhase'), fieldPhase);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_burstRot'), 0);
   gl.uniform1i(uniLoc(PROG_DEC, 'u_modeSVideo'), state.mode === 'svideo' ? 1 : 0);
   gl.uniform1i(uniLoc(PROG_DEC, 'u_modeRGB'), state.mode === 'rgb' ? 1 : 0);
+  gl.uniform1i(uniLoc(PROG_DEC, 'u_decoder'), state.decoder);
+  gl.uniform1i(uniLoc(PROG_DEC, 'u_iTaps'), iTaps);
+  gl.uniform1i(uniLoc(PROG_DEC, 'u_qTaps'), qTaps);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_iSigma'), iSigma);
+  gl.uniform1f(uniLoc(PROG_DEC, 'u_qSigma'), qSigma);
   gl.uniform1f(uniLoc(PROG_DEC, 'u_brightness'), state.lum);
   gl.uniform1f(uniLoc(PROG_DEC, 'u_genFade'), genFade);
+  gl.uniform1i(uniLoc(PROG_DEC, 'u_modeInterlace'), state.interlace ? 1 : 0);
+  gl.uniform1i(uniLoc(PROG_DEC, 'u_frameIdx'), _frameIdx);
   drawTri();
 }
 
-let frame = 0, fpsTime = performance.now(), fpsCount = 0, fpsShown = '–';
+function passCRTToScreen(srcTexId) {
+  gl.useProgram(PROG_CRT);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.viewport(0, 0, cv.width, cv.height);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTexId);
+  gl.uniform1i(uniLoc(PROG_CRT, 'u_tex'), 0);
+  gl.uniform2f(uniLoc(PROG_CRT, 'u_res'), cv.width, cv.height);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_scanline'), state.scan);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_mask'), state.mask);
+  gl.uniform1i(uniLoc(PROG_CRT, 'u_maskType'), state.masktype);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_maskPitch'), state.pitch);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_bloom'), state.bloom);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_glow'), state.glow);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_vignette'), state.vig);
+  gl.uniform1f(uniLoc(PROG_CRT, 'u_barrel'), state.barrel);
+  drawTri();
+}
+
+function passCopy(srcTexId, dstFbo) {
+  gl.useProgram(PROG_CPY);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, dstFbo.fb);
+  gl.viewport(0, 0, dstFbo.w, dstFbo.h);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, srcTexId);
+  gl.uniform1i(uniLoc(PROG_CPY, 'u_tex'), 0);
+  drawTri();
+}
+
+let fpsTime = performance.now(), fpsCount = 0, fpsShown = '–';
 function tick() {
   requestAnimationFrame(tick);
   const ok = uploadSource();
   if (!ok) return;
 
-  // Generation = N: encode→distort→decode N times. After each decode, the
-  // result becomes the new source for the next pass. Emulates re-recording
-  // a tape over and over.
-  const gens = Math.max(1, state.gen|0);
+  const gens = Math.max(1, state.gen | 0);
   let sourceTex = srcTex;
   for (let g = 0; g < gens; g++) {
     passEncode(sourceTex, fboA);
     passDistort(fboA.tex, fboB);
     if (g === gens - 1) {
-      // Final pass goes to screen.
-      const fade = Math.pow(0.92, g);
-      passDecodeToScreen(fboB.tex, fade);
+      // Final gen: decode → fboC (RGB), then CRT pass → screen.
+      const fade = Math.pow(0.93, g);
+      passDecode(fboB.tex, fboC, fade);
+      passCRTToScreen(fboC.tex);
     } else {
-      // Intermediate pass goes back into a FBO so next gen can read it.
-      const fade = Math.pow(0.95, g);
-      passDecodeToFBO(fboB.tex, fboA, fade);
+      // Intermediate gen: decode into a texture we can re-encode next loop.
+      const fade = Math.pow(0.96, g);
+      passDecode(fboB.tex, fboA, fade);
       sourceTex = fboA.tex;
     }
   }
 
-  frame++; fpsCount++;
+  _frameIdx++;
+  fpsCount++;
   const now = performance.now();
   if (now - fpsTime >= 1000) {
     fpsShown = (fpsCount * 1000 / (now - fpsTime)).toFixed(0);
     fpsTime = now; fpsCount = 0;
-    setStatus(`live · ${cv.width}×${cv.height} · ${fpsShown} fps · src ${state.srcW}×${state.srcH}`);
+    setStatus(`live · ${cv.width}×${cv.height} · ${fpsShown} fps · src ${state.srcW}×${state.srcH} · fsc/px=${ntscParams(cv.width).fsc_per_px.toFixed(4)}`);
   }
 }
 
-// ---- boot -------------------------------------------------------------------
+// ─── boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
   syncUI();
   $('src').value = state.source;
