@@ -532,8 +532,8 @@ input[type=range]:focus { outline: none; }
 
     <label style="margin-top:8px">Output size</label>
     <select id="size">
-      <option value="1080x1920" selected>1080×1920  Shorts vert.</option>
-      <option value="standard">match standard</option>
+      <option value="standard" selected>match standard</option>
+      <option value="1080x1920">1080×1920  Shorts vert.</option>
       <option value="720x1280">720×1280  Shorts low-res</option>
       <option value="1920x1080">1920×1080  16:9 horiz.</option>
       <option value="1280x720">1280×720  HD horiz.</option>
@@ -985,24 +985,23 @@ void main() {
 
   vec3 centerYIQ = rgb2yiq(src);
   centerYIQ.gb *= u_saturation;
+  // Y: use center pixel (ybw slider reserved for future vertical-domain filter).
+  float Y = centerYIQ.x;
 
-  // Gaussian LPF — one sampling loop, three accumulators for Y, I, and Q.
+  // Gaussian LPF — one sampling loop, two accumulators for I and Q.
   float pxStep = 1.0 / u_res.x;
-  float yAcc = 0.0, iAcc = 0.0, qAcc = 0.0, yW = 0.0, iW = 0.0, qW = 0.0;
-  int yHalf = max(0, (u_yTaps - 1) / 2);
+  float iAcc = 0.0, qAcc = 0.0, iW = 0.0, qW = 0.0;
   int iHalf = max(0, (u_iTaps - 1) / 2);
   int qHalf = max(0, (u_qTaps - 1) / 2);
-  int bigHalf = max(yHalf, max(iHalf, qHalf));
+  int bigHalf = max(iHalf, qHalf);
   for (int i = -31; i <= 31; ++i) {
     if (i < -bigHalf || i > bigHalf) continue;
     float fi = float(i);
     vec3 ny = rgb2yiq(texture(u_tex, uv + vec2(fi * pxStep, 0.0)).rgb);
     ny.gb *= u_saturation;
-    if (i >= -yHalf && i <= yHalf) { float w = gauss1(fi, u_ySigma); yAcc += w * ny.x; yW += w; }
     if (i >= -iHalf && i <= iHalf) { float w = gauss1(fi, u_iSigma); iAcc += w * ny.y; iW += w; }
     if (i >= -qHalf && i <= qHalf) { float w = gauss1(fi, u_qSigma); qAcc += w * ny.z; qW += w; }
   }
-  float Y = yAcc / max(yW, 1e-6);
   float I = iAcc / max(iW, 1e-6);
   float Q = qAcc / max(qW, 1e-6);
 
