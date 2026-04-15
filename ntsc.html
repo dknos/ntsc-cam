@@ -1799,6 +1799,7 @@ function syncUI() {
   $('masktype').value = String(state.masktype);
   $('colorunder').checked = !!state.colorunder;
   $('interlace').checked = !!state.interlace;
+  updateModeDisables();
 }
 
 function bindRange(id, key, parse = parseFloat, dec = 3) {
@@ -1834,7 +1835,20 @@ bindRange('bloom', 'bloom', parseFloat, 2);
 bindRange('glow', 'glow', parseFloat, 2);
 bindRange('vig', 'vig', parseFloat, 2);
 bindRange('barrel', 'barrel', parseFloat, 3);
-$('mode').addEventListener('change', () => state.mode = $('mode').value);
+function updateModeDisables() {
+  const isRGB = state.mode === 'rgb';
+  ['ring', 'dp', 'dg', 'drop'].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.disabled = isRGB;
+      el.parentElement.style.opacity = isRGB ? '0.4' : '1';
+    }
+  });
+}
+$('mode').addEventListener('change', () => {
+  state.mode = $('mode').value;
+  updateModeDisables();
+});
 $('decoder').addEventListener('change', () => state.decoder = parseInt($('decoder').value, 10));
 $('masktype').addEventListener('change', () => state.masktype = parseInt($('masktype').value, 10));
 $('colorunder').addEventListener('change', () => state.colorunder = $('colorunder').checked ? 1 : 0);
